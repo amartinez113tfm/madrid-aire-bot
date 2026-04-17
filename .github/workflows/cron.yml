@@ -1,0 +1,21 @@
+name: Captura Aire Madrid
+on:
+  schedule:
+    - cron: '0 * * * *' # Ejecuta cada hora
+  workflow_dispatch: # Permite ejecutarlo manualmente
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: Install dependencies
+        run: pip install requests pymongo
+      - name: Run script
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+        run: python main.py
