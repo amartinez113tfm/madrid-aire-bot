@@ -9,58 +9,59 @@ API_URL = "https://ciudadesabiertas.madrid.es/dynamicAPI/API/query/calair_tiempo
 
 def run():
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
         "Accept": "application/json"
     }
     
     try:
-        print(f"Consultando API: {API_URL}")
+        print(f"Conectando a: {API_URL}")
         response = requests.get(API_URL, headers=headers)
         response.raise_for_status()
         data = response.json()
         
-        # Madrid a veces usa '@graph', otras veces 'items', otras 'lista'
-        registros = data.get("@graph") or data.get("items") or data.get("lista")
+        # Según tu log, los datos están en 'lista'
+        registros = data.get("lista", [])
         
-        # Si sigue sin encontrar, y data es una lista directamente:
-        if registros is None and isinstance(data, list):
-            registros = data
-
         if not registros:
-            print("Estructura del JSON recibida:")
-            print(str(data)[:500]) # Imprime los primeros 500 caracteres para depurar
-            print("No se encontraron registros en las claves conocidas.")
+            print("La clave 'lista' está vacía o no existe.")
             return
 
-        print(f"Detectados {len(registros)} registros. Conectando a MongoDB...")
+        print(f"Procesando {len(registros)} filas de datos...")
         
         client = pymongo.MongoClient(MONGO_URI)
         db = client["madrid_aire"]
         coleccion = db["historico_contaminantes"]
 
+        # Agruparemos por estación para que no tengas miles de documentos sueltos
+        # Madrid envía una fila por cada contaminante/hora
+        estaciones_map = {}
         ahora = datetime.utcnow()
-        documentos = []
 
         for item in registros:
-            # Extraemos los valores con nombres de clave comunes en el API de Madrid
-            # Algunos vienen como 'O3', otros como 'valor' dentro de una lista.
-            documentos.append({
-                "timestamp": ahora,
-                "estacion": item.get("title") or item.get("ESTACION"),
-                "contaminantes": {
-                    "o3": float(item.get("O3", 0)),
-                    "no2": float(item.get("NO2", 0)),
-                    "pm2_5": float(item.get("PM2_5", 0)),
-                    "pm10": float(item.get("PM10", 0))
+            nombre_estacion = item.get("ESTACION", "Desconocida")
+            if nombre_estacion not in estaciones_map:
+                estaciones_map[nombre_estacion] = {
+                    "timestamp": ahora,
+                    "estacion": nombre_estacion,
+                    "o3": 0, "no2": 0, "pm2_5": 0, "pm10": 0
                 }
-            })
+            
+            # Mapeo de contaminantes según los campos del JSON de Madrid
+            if "O3" in item: estaciones_map[nombre_estacion]["o3"] = float(item["O3"] or 0)
+            if "NO2" in item: estaciones_map[nombre_estacion]["no2"] = float(item["NO2"] or 0)
+            if "PM2_5" in item: estaciones_map[nombre_estacion]["pm2_5"] = float(item["PM2_5"] or 0)
+            if "PM10" in item: estaciones_map[nombre_estacion]["pm10"] = float(item["PM10"] or 0)
+
+        documentos = list(estaciones_map.values())
 
         if documentos:
             coleccion.insert_many(documentos)
-            print(f"✅ Éxito: {len(documentos)} registros guardados en la base de datos.")
+            print(f"✅ ¡Éxito total! Se han guardado {len(documentos)} estaciones en MongoDB.")
+        else:
+            print("No se pudieron generar documentos válidos.")
 
     except Exception as e:
-        print(f"❌ Error crítico: {e}")
+        print(f"❌ Error: {e}")
 
 if __name__ == "__main__":
     run()
