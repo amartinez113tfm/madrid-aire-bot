@@ -22,7 +22,7 @@ jobs:
         with:
           python-version: '3.9'
           # Cachear dependencias ayuda a que sea más rápido
-          cache: 'pip'
+          # cache: 'pip'
       - name: Instalar librerias
         run: |
           pip install pandas prophet pymongo huggingface_hub
