@@ -23,13 +23,14 @@ jobs:
           python-version: '3.9'
           # Cachear dependencias ayuda a que sea más rápido
           cache: 'pip'
-
       - name: Instalar librerias
         run: |
           pip install pandas prophet pymongo huggingface_hub
-
       - name: Ejecutar script de prediccion
         env:
           # Aqui es donde GitHub lee tu secreto de Mongo
           MONGO_URI: ${{ secrets.MONGO_URI }}
-        run: python predict_and_upload.py
+        run: python traficoMain.py
+
+
+
