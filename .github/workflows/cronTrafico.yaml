@@ -1,0 +1,35 @@
+name: Pipeline Diario de Prediccion de Trafico
+
+on:
+  schedule:
+    # Se ejecuta todos los días a las 02:00 AM (hora UTC)
+    # Esto asegura que al despertar tengas las 24h del día listas
+    - cron: '0 2 * * *'
+  
+  # Esto permite que puedas darle a un botón de "Run" en GitHub para probarlo
+  workflow_dispatch:
+
+jobs:
+  update-mongo:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Descargar codigo del repo
+        uses: actions/checkout@v3
+
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          # Cachear dependencias ayuda a que sea más rápido
+          cache: 'pip'
+
+      - name: Instalar librerias
+        run: |
+          pip install pandas prophet pymongo huggingface_hub
+
+      - name: Ejecutar script de prediccion
+        env:
+          # Aqui es donde GitHub lee tu secreto de Mongo
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+        run: python predict_and_upload.py
