@@ -1,0 +1,29 @@
+name: Update Weather Data
+
+on:
+  schedule:
+    # Se ejecuta cada hora (puedes ajustarlo)
+    - cron: '0 * * * *'
+  workflow_dispatch: # Permite ejecutarlo manualmente para probar
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: 
+          pip install pandas pymongo requests
+
+      - name: Run update script
+        env:
+          # Aquí es donde vinculas el secreto de GitHub con el script
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+        run: python update_weather.py
