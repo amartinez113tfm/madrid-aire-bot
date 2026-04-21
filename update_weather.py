@@ -14,17 +14,27 @@ def procesar_open_meteo():
     estaciones = pd.read_csv('estaciones_coordenadas.csv',sep=';')
 
     for _, est in estaciones.iterrows():
-        url = (f"https://api.open-meteo.com/v1/forecast?latitude={est['lat']}&longitude={est['lon']}"
-               f"&hourly=temperature_2m,relative_humidity_2m,rain,wind_speed_10m,surface_preasure,wind_direction_10m,direct_radiation_instant"
+        # Aseguramos que lat y lon sean floats y est_id sea un entero limpio
+        lat = float(est['lat'])
+        lon = float(est['lon'])
+        est_id = int(est['id'])
+        
+        # Construimos la URL forzando el formato de punto decimal
+        url = (f"https://api.open-meteo.com/v1/forecast?"
+               f"latitude={lat:.6f}&longitude={lon:.6f}"
+               f"&hourly=temperature_2m,relative_humidity_2m,rain,surface_preasure,wind_speed_10m,wind_direction_10m,direct_radiation_instant"
                f"&past_days=0&forecast_days=1")
         
-        response = requests.get(url).json()
+        response_raw = requests.get(url)
+        response = response_raw.json()
         
         if 'hourly' not in response:
-            print(f"Error en estación {est['id']}: No se recibieron datos horarios.")
+            print(f"Error en estación {est_id}: No se recibieron datos horarios.")
+            print(f"Respuesta de la API: {response}") # Esto nos dirá el motivo real
             continue
 
         h = response['hourly']
+   
         
         # Iteramos sobre la lista de 'time' (que tiene 24 elementos según tu ejemplo)
         for i in range(len(h['time'])):
