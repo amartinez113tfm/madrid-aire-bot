@@ -52,7 +52,7 @@ def run():
         
         try:
             # Timeout de 10 segundos para la petición a la API
-            response = requests.get(url, timeout=10)
+            response = requests.get(url, timeout=30)
             response.raise_for_status()
             data = response.json()
             
@@ -92,7 +92,8 @@ def run():
                 registros_estacion += 1
             
             print(f" OK ({registros_estacion} horas)", flush=True)
-
+            # Pausa de 1 segundo entre estaciones para evitar bloqueos de la API
+            time.sleep(5)
         except Exception as e:
             print(f" ERROR: {e}", flush=True)
 
