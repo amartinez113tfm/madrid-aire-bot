@@ -11,7 +11,7 @@ def procesar_open_meteo():
     coleccion = db['meteorologia']
 
     # Cargar tus estaciones con coordenadas
-    estaciones = pd.read_csv('estaciones_coordenadas.csv')
+    estaciones = pd.read_csv('estaciones_coordenadas.csv',sep=';')
 
     for _, est in estaciones.iterrows():
         url = (f"https://api.open-meteo.com/v1/forecast?latitude={est['lat']}&longitude={est['lon']}"
