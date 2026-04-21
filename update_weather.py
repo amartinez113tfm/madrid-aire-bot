@@ -22,7 +22,7 @@ def procesar_open_meteo():
         # Construimos la URL forzando el formato de punto decimal
         url = (f"https://api.open-meteo.com/v1/forecast?"
                f"latitude={lat:.6f}&longitude={lon:.6f}"
-               f"&hourly=temperature_2m,relative_humidity_2m,rain,surface_preasure,wind_speed_10m,wind_direction_10m,direct_radiation_instant"
+               f"&hourly=temperature_2m,relative_humidity_2m,rain,surface_pressure,wind_speed_10m,wind_direction_10m,direct_radiation_instant"
                f"&past_days=0&forecast_days=1")
         
         response_raw = requests.get(url)
@@ -51,7 +51,7 @@ def procesar_open_meteo():
                     },
                     "temperatura": h['temperature_2m'][i],
                     "humedad": h['relative_humidity_2m'][i],
-                    "presion": h['surface_preasure'], # No incluido en tu URL actual
+                    "presion": h['surface_pressure'], # No incluido en tu URL actual
                     "radiacion_solar": h['direct_radiation_instant'][i],
                     "precipitacion": h['rain'][i]
                 }
