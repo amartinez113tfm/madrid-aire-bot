@@ -14,7 +14,7 @@ def run_pipeline():
     mongo_uri = os.getenv("MONGO_URI")
     client = MongoClient(mongo_uri)
     db = client['trafico_madrid']
-    collection = db['trafico_unificado']
+    collection = db['predicciones_horarias']
 
     for cod in STATIONS:
         # 2. Descargar el modelo desde Hugging Face
