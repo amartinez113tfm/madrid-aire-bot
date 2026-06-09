@@ -18,4 +18,4 @@ jobs:
       - name: Run script
         env:
           MONGO_URI: ${{ secrets.MONGO_URI }}
-        run: python main.py
+        run: python actualiza_contaminantes.py
